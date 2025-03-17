@@ -28,6 +28,8 @@ namespace GoDoCreater
         public const string MagicWord = "\\SQLEXPRESS;Encrypt=True;TrustServerCertificate=True;";
         public const string MagicHead = "Persist Security Info=False;User ID=Sw;Password=;Initial Catalog=Sw;Server=";
         public static int EventNo;
+        public static bool Strategy1 = false; // 男女の合同を許す
+        public static bool Strategy2 = false; //組単位の合同を許す
         public static string EventName = string.Empty;
         public static string ServerName = string.Empty;
         public static int MaxLaneNo4Yosen = 10;
@@ -88,10 +90,15 @@ namespace GoDoCreater
         {
             SetTID();
             AdjustStartLane();
-            CreateGoDoTable();
-            MessageBox.Show("合同レースの作成終了");
+           
         }
         public static void Scenario2()
+        {
+            DeleteGoDoTable();
+            CreateGoDoTable();
+            MessageBox.Show("シナリオ2(レーン寄せ)終了");
+        }
+        public static void Scenario3()
         {
             GlobalV.GoDoClass=GetOrCreateGodoClass();
             MoveSwimmerAll();
@@ -348,6 +355,8 @@ namespace GoDoCreater
                 prevKumi = kumi;
                 if (GetNextRace(ref prgNo, ref kumi))
                 {
+                    if (!GlobalV.Strategy2 && (kumi > 1 || prevKumi > 1)) return;
+                    if (!GlobalV.Strategy1 && (GlobalV.GenderbyPrgNo[prevPrgNo - 1] != GlobalV.GenderbyPrgNo[prgNo - 1])) return;
                     if (GlobalV.DistancebyPrgNo[prevPrgNo - 1] != GlobalV.DistancebyPrgNo[prgNo - 1]) return;
                     if (GlobalV.ShumokubyPrgNo[prevPrgNo - 1] != GlobalV.ShumokubyPrgNo[prgNo - 1]) return;
                     if (GlobalV.Phase[prevPrgNo - 1] != GlobalV.Phase[prgNo - 1]) return;
@@ -399,6 +408,23 @@ namespace GoDoCreater
             }
                 
         }
+        static void ChangeGender(int prgNo)
+        {
+            string connectionString = GlobalV.MagicHead + GlobalV.ServerName + GlobalV.MagicWord;
+            using (SqlConnection myCon = new(connectionString))
+            {
+                myCon.Open();
+                string myQuery = @"
+                      update  プログラム set 性別コード=@gender where 表示用競技番号=@prgNo and 大会番号=@eventNo";
+                using (SqlCommand myCommand = new(myQuery, myCon))
+                {
+                    myCommand.Parameters.AddWithValue("@eventNo", GlobalV.EventNo);
+                    myCommand.Parameters.AddWithValue("@prgNo", prgNo);
+                    myCommand.Parameters.AddWithValue("@gender", 3); //混成
+                    myCommand.ExecuteNonQuery();
+                }
+            }
+         }
         static void ChangeClass(int prgNo)
         {
             string connectionString = GlobalV.MagicHead + GlobalV.ServerName + GlobalV.MagicWord;
@@ -620,18 +646,30 @@ namespace GoDoCreater
                 nextPrgNo = prgNo;
                 nextKumi = kumi;
                 if (!GetNextRace(ref nextPrgNo, ref nextKumi)) return;
-                if (!Togetherable(prgNo, kumi, nextPrgNo, nextKumi)) continue;
+                if (!CanGoTogether(prgNo, kumi, nextPrgNo, nextKumi)) continue;
                 if (kumi==1)
                 {
                     MoveSwimmer(nextPrgNo, nextKumi, prgNo, kumi);
                     if (GlobalV.NumSwimmers[GetRaceNo(nextPrgNo,2)]==0)
                         DeleteProgram(nextPrgNo);
                     ChangeClass(prgNo);
+                    if (GlobalV.GenderbyPrgNo[prgNo - 1] != GlobalV.GenderbyPrgNo[nextPrgNo - 1])
+                    {
+                        ChangeGender(prgNo);
+                    }
+                } else
+                {
+                    if (GlobalV.NumSwimmers[GetRaceNo(nextPrgNo,2)]==0)
+                    {
+                        MoveSwimmerReverse(prgNo, kumi, nextPrgNo, nextKumi);
+                        ChangeClass(nextPrgNo);
+                    }
                 }
             } while (GetNextRace(ref prgNo, ref kumi));
 
         }
-        static bool Togetherable(int prgNo1, int kumi1, int prgNo2, int kumi2)
+
+         static bool CanGoTogether(int prgNo1, int kumi1, int prgNo2, int kumi2)
         {
             int lastLane;
             int firstLane;
@@ -734,6 +772,97 @@ namespace GoDoCreater
                 }   
             }
         }
+
+        static void MoveSwimmerReverse(int prgNo, int kumi, int toPrgNo, int toKumi)
+        {
+            int uid = GlobalV.UIDFromPrgNo[prgNo-1];
+            string connectionString = GlobalV.MagicHead + GlobalV.ServerName + GlobalV.MagicWord;
+            int[] thisSwimmerID = new int[10];
+            string[] entryTime = new string[10];
+            Array.Fill(entryTime, string.Empty);
+            int[] classNo = new int[10];
+            int[] certNo = new int[10];
+            int[] firstOne = new int[10];
+            int[] secondOne = new int[10];
+            int[] thirdOne = new int[10];
+            int[] lastOne = new int[10];
+            int[] firstOneClassNo = new int[10];
+            int[] firstOneCertNo = new int[10];
+            int[] laneNo = new int[10];
+            int scounter = 0;
+            int startLane=0;
+            int maxScounter = 0;
+            using (SqlConnection myCon = new(connectionString))
+            {
+                myCon.Open();
+                string myQuery = @"
+                      select * from 記録 where 競技番号=@uid and 大会番号=@eventNo and 組=@kumi 
+                        and 選手番号>0 
+                        order by 水路 ";
+                using (SqlCommand myCommand = new(myQuery, myCon))
+                {
+                    myCommand.Parameters.AddWithValue("@eventNo", GlobalV.EventNo);
+                    myCommand.Parameters.AddWithValue("@uid", uid);
+                    myCommand.Parameters.AddWithValue("@kumi", kumi);
+                    using (SqlDataReader reader = myCommand.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            thisSwimmerID[scounter] = Convert.ToInt32(reader["選手番号"]);
+                            entryTime[scounter] = (string)reader["エントリータイム"];
+                            classNo[scounter] = Convert.ToInt32(reader["新記録判定クラス"]);
+                            certNo[scounter] = Convert.ToInt32(reader["標準記録判定クラス"]);
+                            firstOne[scounter] = Convert.ToInt32(reader["第１泳者"]);
+                            secondOne[scounter] = Convert.ToInt32(reader["第２泳者"]);
+                            thirdOne[scounter] = Convert.ToInt32(reader["第３泳者"]);
+                            lastOne[scounter] = Convert.ToInt32(reader["第４泳者"]);
+                            firstOneClassNo[scounter] = Convert.ToInt32(reader["第一泳者新記録判定クラス"]);
+                            firstOneCertNo[scounter] = Convert.ToInt32(reader["第一泳者標準記録判定クラス"]);
+                            laneNo[scounter] = Convert.ToInt32(reader["水路"]);
+                            scounter++;
+                        }
+                        maxScounter = scounter;
+                    }
+                }
+
+                startLane++;
+                scounter = 0;
+                uid=GlobalV.UIDFromPrgNo[toPrgNo-1];
+                for (scounter = 0; scounter<maxScounter; scounter++)
+                {
+
+                    myQuery = @" Update 記録
+　　　　　　　　　　　　　　set 選手番号=@sid, エントリータイム=@entryTime, 
+                         新記録判定クラス=@classNo, 標準記録判定クラス=@certNo, 
+                         第１泳者=@firstOne , 第２泳者 = @secondOne ,
+                         第３泳者=@thirdOne , 第４泳者 = @lastOne ,
+                         第一泳者新記録判定クラス=@firstOneClassNo ,
+                         第一泳者標準記録判定クラス=@firstOneCertNo
+                      where 大会番号=@eventNo and 競技番号=@uid and 組=@tokumi and 水路=@laneNo";
+
+                    using (SqlCommand myCommand = new(myQuery, myCon))
+                    {
+
+                        myCommand.Parameters.AddWithValue("@eventNo", GlobalV.EventNo);
+                        myCommand.Parameters.AddWithValue("@sid", thisSwimmerID[scounter]);
+                        myCommand.Parameters.AddWithValue("@entryTime", entryTime[scounter]);
+                        myCommand.Parameters.AddWithValue("@classNo", classNo[scounter]);
+                        myCommand.Parameters.AddWithValue("@certNo", certNo[scounter]);
+                        myCommand.Parameters.AddWithValue("@firstOne", firstOne[scounter]);
+                        myCommand.Parameters.AddWithValue("@secondOne", secondOne[scounter]);
+                        myCommand.Parameters.AddWithValue("@thirdOne", thirdOne[scounter]);
+                        myCommand.Parameters.AddWithValue("@lastOne", lastOne[scounter]);
+                        myCommand.Parameters.AddWithValue("@firstOneClassNo", firstOneClassNo[scounter]);
+                        myCommand.Parameters.AddWithValue("@firstOneCertNo", firstOneCertNo[scounter]);
+                        myCommand.Parameters.AddWithValue("@uid", uid);
+                        myCommand.Parameters.AddWithValue("@tokumi", toKumi);
+                        myCommand.Parameters.AddWithValue("@laneNo", laneNo[scounter]);
+                        myCommand.ExecuteNonQuery();
+                    }
+                }   
+            }
+        }
+
         static int GetStartLane(int totalNum)
         {
             if (totalNum >= GlobalV.MaxLaneNo4TimeFinal-1)
@@ -792,8 +921,7 @@ namespace GoDoCreater
 
         }
 
-
-        static void CreateGoDoTable()
+        static void DeleteGoDoTable()
         {
             string connectionString = GlobalV.MagicHead + GlobalV.ServerName + GlobalV.MagicWord;
             using (SqlConnection myCon = new(connectionString))
@@ -805,12 +933,98 @@ namespace GoDoCreater
                     myCommand.Parameters.AddWithValue("@eventNo", GlobalV.EventNo);
                     myCommand.ExecuteNonQuery();
                 }
+            }
+        }
+
+        static void CreateGoDoTable()
+        {
+            string connectionString = GlobalV.MagicHead + GlobalV.ServerName + GlobalV.MagicWord;
+            using (SqlConnection myCon = new(connectionString))
+            {
+                myCon.Open();
+                string myQuery;
+                int tifNumber = 0;
+                int howMany = 1;
+                int prgNo=1;
+                int kumi = 1;
+                int nextPrgNo;
+                int nextKumi;
+                bool first = true;
+                do {
+                    nextPrgNo = prgNo;
+                    nextKumi = kumi;
+                    if (!GetNextRace(ref nextPrgNo, ref nextKumi)) return;
+                    int raceNo = GetRaceNo(prgNo,kumi);
+                    int UID = GlobalV.UIDFromPrgNo[prgNo-1];
+                    if (CanGoTogether(prgNo, kumi, nextPrgNo, nextKumi))
+                    {
+                        if (first)
+                        {
+                            first = false;
+                            tifNumber++;
+                            howMany = 1;
+                            myQuery = @"insert into 合同レースプログラム 
+                                 (大会番号, 合同レース番号, 競技番号1, 組1 )
+                                  values ( @eventNo , @tifNumber , @uid, @kumi)";
+                            using (SqlCommand myCommand = new(myQuery, myCon))
+                            {
+                                myCommand.Parameters.AddWithValue("@eventNo", GlobalV.EventNo);
+                                myCommand.Parameters.AddWithValue("@tifNumber", tifNumber);
+                                myCommand.Parameters.AddWithValue("@uid", UID);
+                                myCommand.Parameters.AddWithValue("@kumi", kumi);
+                                myCommand.ExecuteNonQuery();
+                            }
+                            howMany++;
+                            myQuery = @"update 合同レースプログラム 
+                                    set 競技番号" + howMany + "= @uid, 組" + howMany + @"=@kumi 
+                                    where 合同レース番号=@tifNumber and 大会番号=@eventNo";
+                            UID = GlobalV.UIDFromPrgNo[nextPrgNo-1];
+
+                            using (SqlCommand myCommand = new(myQuery, myCon))
+                            {
+                                myCommand.Parameters.AddWithValue("@eventNo", GlobalV.EventNo);
+                                myCommand.Parameters.AddWithValue("@tifNumber", tifNumber);
+                                myCommand.Parameters.AddWithValue("@uid", UID);
+                                myCommand.Parameters.AddWithValue("@kumi", nextKumi);
+                                myCommand.ExecuteNonQuery();
+                            }
+}
+                        else
+                        {
+                            howMany++;
+                            myQuery = @"update 合同レースプログラム 
+                                    set 競技番号" + howMany + "= @uid, 組" + howMany + @"=@kumi 
+                                    where 合同レース番号=@tifNumber and 大会番号=@eventNo";
+                            UID = GlobalV.UIDFromPrgNo[nextPrgNo-1];
+
+                            using (SqlCommand myCommand = new(myQuery, myCon))
+                            {
+                                myCommand.Parameters.AddWithValue("@eventNo", GlobalV.EventNo);
+                                myCommand.Parameters.AddWithValue("@tifNumber", tifNumber);
+                                myCommand.Parameters.AddWithValue("@uid", UID);
+                                myCommand.Parameters.AddWithValue("@kumi", nextKumi);
+                                myCommand.ExecuteNonQuery();
+                            }
+                        }
+                    }
+                    else first = true;
+                } while (GetNextRace(ref prgNo, ref kumi));
+            }
+ 
+        }
+        static void CreateGoDoTableObso()
+        {
+            DeleteGoDoTable();
+            string connectionString = GlobalV.MagicHead + GlobalV.ServerName + GlobalV.MagicWord;
+            using (SqlConnection myCon = new(connectionString))
+            {
+                myCon.Open();
+                string myQuery;
                 int tifNumber = 0;
                 int prevTif = 0;
                 int howMany = 1;
                 int prgNo=1;
                 int kumi = 1;
-                bool flag = false;
                 do {
                     int raceNo = GetRaceNo(prgNo,kumi);
                     int UID = GlobalV.UIDFromPrgNo[prgNo-1];
@@ -823,7 +1037,6 @@ namespace GoDoCreater
                             myQuery = @"insert into 合同レースプログラム 
                                  (大会番号, 合同レース番号, 競技番号" + howMany + ", 組" +
                                  howMany + ") values ( @eventNo , @tifNumber , @uid, @kumi)";
-                            flag = true;
                         }
                         else 
                         {

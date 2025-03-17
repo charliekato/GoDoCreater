@@ -31,8 +31,6 @@
             listEvent = new ListBox();
             btnSelect = new Button();
             btnQuit = new Button();
-            checkBoxScenario1 = new CheckBox();
-            checkBoxScenario2 = new CheckBox();
             SuspendLayout();
             // 
             // listEvent
@@ -66,34 +64,11 @@
             btnQuit.UseVisualStyleBackColor = true;
             btnQuit.Click += btnQuit_Click;
             // 
-            // checkBoxScenario1
-            // 
-            checkBoxScenario1.AutoSize = true;
-            checkBoxScenario1.Location = new Point(315, 579);
-            checkBoxScenario1.Name = "checkBoxScenario1";
-            checkBoxScenario1.Size = new Size(228, 24);
-            checkBoxScenario1.TabIndex = 3;
-            checkBoxScenario1.Text = "合同ができるようにレーンをずらす。";
-            checkBoxScenario1.UseVisualStyleBackColor = true;
-            // 
-            // checkBoxScenario2
-            // 
-            checkBoxScenario2.AutoSize = true;
-            checkBoxScenario2.Location = new Point(315, 616);
-            checkBoxScenario2.Name = "checkBoxScenario2";
-            checkBoxScenario2.Size = new Size(232, 24);
-            checkBoxScenario2.TabIndex = 4;
-            checkBoxScenario2.Text = "合同のレースを作ってしまう。(推奨)";
-            checkBoxScenario2.UseVisualStyleBackColor = true;
-            checkBoxScenario2.CheckedChanged += checkBoxScenario2_CheckedChanged;
-            // 
             // SelectEvent
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1161, 659);
-            Controls.Add(checkBoxScenario2);
-            Controls.Add(checkBoxScenario1);
             Controls.Add(btnQuit);
             Controls.Add(btnSelect);
             Controls.Add(listEvent);
@@ -101,7 +76,6 @@
             Name = "SelectEvent";
             Text = "競技選択  　　　一般社団法人 大津市水泳協会";
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
@@ -109,8 +83,6 @@
         private ListBox listEvent;
         private Button btnSelect;
         private Button btnQuit;
-        private CheckBox checkBoxScenario1;
-        private CheckBox checkBoxScenario2;
     }
 
 }

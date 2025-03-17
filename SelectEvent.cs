@@ -35,11 +35,15 @@ namespace GoDoCreater
 #pragma warning disable CS8600 // Null リテラルまたは Null の可能性がある値を Null 非許容型に変換しています。
                     string item = listEvent.Items[e.Index].ToString();
 #pragma warning restore CS8600 // Null リテラルまたは Null の可能性がある値を Null 非許容型に変換しています。
+#pragma warning disable CS8602 // Null リテラルまたは Null の可能性がある値を Null 非許容型に変換しています。
                     string[] parts = item.Split('|'); // "|" 区切りでアイテムを分割
 
+#pragma warning restore CS8602 // Null リテラルまたは Null の可能性がある値を Null 非許容型に変換しています。
                     // カラムごとに描画
                     int x = e.Bounds.Left;
+#pragma warning disable CS8604 // Null リテラルまたは Null の可能性がある値を Null 非許容型に変換しています。
                     e.Graphics.DrawString(parts[0], e.Font, Brushes.Black, x, e.Bounds.Top);
+#pragma warning restore CS8604 // Null リテラルまたは Null の可能性がある値を Null 非許容型に変換しています。
                     x += 60; // カラムの位置調整
                     e.Graphics.DrawString(parts[1], e.Font, Brushes.Black, x, e.Bounds.Top);
                     x += 680;
@@ -116,25 +120,16 @@ namespace GoDoCreater
 
         private void btnSelect_Click(object sender, EventArgs e)
         {
+
+
             var selectedItem = listEvent.SelectedItem;
             if (selectedItem != null)
             {
-                bool scenario1, scenario2;
-                if (selectedItem == null)
-                {
-                    MessageBox.Show("大会が選択されていません。");
-                } else { 
-                    GlobalV.EventNo = Int32.Parse(selectedItem.ToString()[..3]);
-                    scenario2 = checkBoxScenario2.Checked;
-                    scenario1 = checkBoxScenario1.Checked;
-                    GoDogen.PrepareGO();
-                    if (scenario1)
-                        GoDogen.Scenario1();
-                    if (scenario2)
-                        GoDogen.Scenario2();
-                    //this.Hide();
-                }
-
+#pragma warning disable CS8602 // Null リテラルまたは Null の可能性がある値を Null 非許容型に変換しています。
+                GlobalV.EventNo = Int32.Parse(selectedItem.ToString()[..3]);
+                MainMenu mainMenu = new(selectedItem.ToString());
+                mainMenu.Show();
+#pragma warning restore CS8602 // Null リテラルまたは Null の可能性がある値を Null 非許容型に変換しています。
             }
             else
             {
