@@ -663,6 +663,11 @@ namespace GoDoCreater
                     {
                         MoveSwimmerReverse(prgNo, kumi, nextPrgNo, nextKumi);
                         ChangeClass(nextPrgNo);
+                        DeleteProgram(prgNo);
+                        if (GlobalV.GenderbyPrgNo[prgNo - 1] != GlobalV.GenderbyPrgNo[nextPrgNo - 1])
+                        {
+                            ChangeGender(nextPrgNo);
+                        }
                     }
                 }
             } while (GetNextRace(ref prgNo, ref kumi));

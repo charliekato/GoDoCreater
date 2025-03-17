@@ -33,7 +33,6 @@
             checkBoxStrategy1 = new CheckBox();
             checkBoxStrategy2 = new CheckBox();
             checkBoxScenario2 = new CheckBox();
-            checkBoxScenario4 = new CheckBox();
             buttonExe = new Button();
             buttonQuit = new Button();
             labelScenario3 = new Label();
@@ -90,16 +89,6 @@
             checkBoxScenario2.Text = "セイコーリザルトで合同のテーブルを作る";
             checkBoxScenario2.UseVisualStyleBackColor = true;
             // 
-            // checkBoxScenario4
-            // 
-            checkBoxScenario4.AutoSize = true;
-            checkBoxScenario4.Location = new Point(178, 329);
-            checkBoxScenario4.Name = "checkBoxScenario4";
-            checkBoxScenario4.Size = new Size(358, 24);
-            checkBoxScenario4.TabIndex = 5;
-            checkBoxScenario4.Text = "合同可能なものはすべて合同にして競技番号もふり直す";
-            checkBoxScenario4.UseVisualStyleBackColor = true;
-            // 
             // buttonExe
             // 
             buttonExe.Location = new Point(229, 376);
@@ -137,7 +126,6 @@
             Controls.Add(labelScenario3);
             Controls.Add(buttonQuit);
             Controls.Add(buttonExe);
-            Controls.Add(checkBoxScenario4);
             Controls.Add(checkBoxScenario2);
             Controls.Add(checkBoxStrategy2);
             Controls.Add(checkBoxStrategy1);
