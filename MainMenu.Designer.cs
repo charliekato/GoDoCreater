@@ -36,6 +36,7 @@
             buttonExe = new Button();
             buttonQuit = new Button();
             labelScenario3 = new Label();
+            label1 = new Label();
             SuspendLayout();
             // 
             // checkBoxScenario1
@@ -53,9 +54,9 @@
             checkBoxScenario3.AutoSize = true;
             checkBoxScenario3.Location = new Point(178, 262);
             checkBoxScenario3.Name = "checkBoxScenario3";
-            checkBoxScenario3.Size = new Size(367, 24);
+            checkBoxScenario3.Size = new Size(391, 24);
             checkBoxScenario3.TabIndex = 1;
-            checkBoxScenario3.Text = "「合同レース」というクラスのレースをつくりそこに移動させる。";
+            checkBoxScenario3.Text = "違う年齢クラスの選手を集めたレースをつくりそこに移動させる。";
             checkBoxScenario3.UseVisualStyleBackColor = true;
             checkBoxScenario3.CheckedChanged += checkBoxScenario3_CheckedChanged;
             // 
@@ -118,11 +119,21 @@
             labelScenario3.TabIndex = 8;
             labelScenario3.Text = " こうすることによって電光に距離や種目が表示されます。";
             // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(232, 321);
+            label1.Name = "label1";
+            label1.Size = new Size(536, 20);
+            label1.TabIndex = 9;
+            label1.Text = "現在は男女合同と、組単位の合同には対応してません。(競技結果の印刷が未対応なた)";
+            // 
             // MainMenu
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(label1);
             Controls.Add(labelScenario3);
             Controls.Add(buttonQuit);
             Controls.Add(buttonExe);
@@ -133,6 +144,7 @@
             Controls.Add(checkBoxScenario1);
             Name = "MainMenu";
             Text = "MainMenu";
+            Load += MainMenu_Load;
             ResumeLayout(false);
             PerformLayout();
         }
@@ -148,5 +160,6 @@
         private Button buttonExe;
         private Button buttonQuit;
         private Label labelScenario3;
+        private Label label1;
     }
 }

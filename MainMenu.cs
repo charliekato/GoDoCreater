@@ -46,5 +46,10 @@ namespace GoDoCreater
         {
             this.Close();
         }
+
+        private void MainMenu_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
