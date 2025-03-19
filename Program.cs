@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿#define TRADITIONAL
+using Microsoft.Data.SqlClient;
 using Microsoft.Identity.Client;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -100,7 +101,7 @@ namespace GoDoCreater
         }
         public static void Scenario3()
         {
-            GlobalV.GoDoClass=GetOrCreateGodoClass();
+            //GlobalV.GoDoClass=GetOrCreateGodoClass();
             MoveSwimmerAll();
             MessageBox.Show("合同レースの作成終了");
         }
@@ -425,7 +426,7 @@ namespace GoDoCreater
                 }
             }
          }
-        static void ChangeClass(int prgNo)
+        static void ChangeClass(int prgNo,int classNo)
         {
             string connectionString = GlobalV.MagicHead + GlobalV.ServerName + GlobalV.MagicWord;
             using (SqlConnection myCon = new(connectionString))
@@ -437,7 +438,7 @@ namespace GoDoCreater
                 {
                     myCommand.Parameters.AddWithValue("@eventNo", GlobalV.EventNo);
                     myCommand.Parameters.AddWithValue("@prgNo", prgNo);
-                    myCommand.Parameters.AddWithValue("@classNo", GlobalV.GoDoClass);
+                    myCommand.Parameters.AddWithValue("@classNo", classNo);
                     myCommand.ExecuteNonQuery();
                 }
             }
@@ -533,6 +534,8 @@ namespace GoDoCreater
             int[] thisSwimmerID = new int[10];
             string[] entryTime = new string[10];
             Array.Fill(entryTime, string.Empty);
+            string[] goal = new string[10];
+            Array.Fill(goal, string.Empty);
             int[] classNo = new int[10];
             int[] certNo = new int[10];
             int[] firstOne = new int[10];
@@ -541,6 +544,8 @@ namespace GoDoCreater
             int[] lastOne = new int[10];
             int[] firstOneClassNo = new int[10];
             int[] firstOneCertNo = new int[10];
+            int[] laneNo = new int[10];
+            
             int lane;
             int scounter = 0;
             int maxScounter = 0;
@@ -571,6 +576,8 @@ namespace GoDoCreater
                                 lastOne[scounter] = Convert.ToInt32(reader["第４泳者"]);
                                 firstOneClassNo[scounter] = Convert.ToInt32(reader["第一泳者新記録判定クラス"]);
                                 firstOneCertNo[scounter] = Convert.ToInt32(reader["第一泳者標準記録判定クラス"]);
+                                laneNo[scounter] = Convert.ToInt32(reader["水路"]);
+                                goal[scounter] = (string)reader["ゴール"];
                                 scounter++;
 
                             }
@@ -589,7 +596,8 @@ namespace GoDoCreater
                          第１泳者=@firstOne , 第２泳者 = @secondOne ,
                          第３泳者=@thirdOne , 第４泳者 = @lastOne ,
                          第一泳者新記録判定クラス=@firstOneClassNo ,
-                         第一泳者標準記録判定クラス=@firstOneCertNo
+                         第一泳者標準記録判定クラス=@firstOneCertNo,
+                         ゴール=@goal
                       where 大会番号=@eventNo and 競技番号=@uid and 組=@tokumi and 水路=@laneNo";
 
                     using (SqlCommand myCommand = new(myQuery, myCon))
@@ -610,6 +618,7 @@ namespace GoDoCreater
                             myCommand.Parameters.AddWithValue("@uid", uid);
                             myCommand.Parameters.AddWithValue("@tokumi", kumi);
                             myCommand.Parameters.AddWithValue("@laneNo", lane);
+                            myCommand.Parameters.AddWithValue("@goal", "");
 
                         }
                         else
@@ -629,6 +638,7 @@ namespace GoDoCreater
                             myCommand.Parameters.AddWithValue("@uid", uid);
                             myCommand.Parameters.AddWithValue("@tokumi", kumi);
                             myCommand.Parameters.AddWithValue("@laneNo", lane);
+                            myCommand.Parameters.AddWithValue("@goal", goal[scounter]);
                             scounter++;
                         }
                         myCommand.ExecuteNonQuery();
@@ -649,26 +659,36 @@ namespace GoDoCreater
                 if (!CanGoTogether(prgNo, kumi, nextPrgNo, nextKumi)) continue;
                 if (kumi==1)
                 {
-                    MoveSwimmer(nextPrgNo, nextKumi, prgNo, kumi);
-                    if (GlobalV.NumSwimmers[GetRaceNo(nextPrgNo,2)]==0)
-                        DeleteProgram(nextPrgNo);
-                    ChangeClass(prgNo);
-                    if (GlobalV.GenderbyPrgNo[prgNo - 1] != GlobalV.GenderbyPrgNo[nextPrgNo - 1])
-                    {
-                        ChangeGender(prgNo);
+#if TRADITIONAL
+                    if (nextKumi==1) {
+                        if (GlobalV.GenderbyPrgNo[prgNo - 1] == GlobalV.GenderbyPrgNo[nextPrgNo - 1]) {
+#endif
+                            MoveSwimmer(nextPrgNo, nextKumi, prgNo, kumi);
+                            if (GlobalV.NumSwimmers[GetRaceNo(nextPrgNo,2)]==0)
+                                DeleteProgram(nextPrgNo);
+                            ChangeClass(prgNo,0);
+                            if (GlobalV.GenderbyPrgNo[prgNo - 1] != GlobalV.GenderbyPrgNo[nextPrgNo - 1])
+                            {
+                                ChangeGender(prgNo);
+                            }
+#if TRADITIONAL
+                        }
                     }
+#endif
                 } else
                 {
+#if !TRADITIONAL
                     if (GlobalV.NumSwimmers[GetRaceNo(nextPrgNo,2)]==0)
                     {
                         MoveSwimmerReverse(prgNo, kumi, nextPrgNo, nextKumi);
-                        ChangeClass(nextPrgNo);
+                        ChangeClass(nextPrgNo,0);
                         DeleteProgram(prgNo);
                         if (GlobalV.GenderbyPrgNo[prgNo - 1] != GlobalV.GenderbyPrgNo[nextPrgNo - 1])
                         {
                             ChangeGender(nextPrgNo);
                         }
                     }
+#endif
                 }
             } while (GetNextRace(ref prgNo, ref kumi));
 
@@ -702,6 +722,8 @@ namespace GoDoCreater
             int[] lastOne = new int[10];
             int[] firstOneClassNo = new int[10];
             int[] firstOneCertNo = new int[10];
+            string[] goal = new string[10];
+            Array.Fill(goal, string.Empty);
             int lane;
             int scounter = 0;
             int startLane=0;
@@ -732,6 +754,7 @@ namespace GoDoCreater
                             lastOne[scounter] = Convert.ToInt32(reader["第４泳者"]);
                             firstOneClassNo[scounter] = Convert.ToInt32(reader["第一泳者新記録判定クラス"]);
                             firstOneCertNo[scounter] = Convert.ToInt32(reader["第一泳者標準記録判定クラス"]);
+                            goal[scounter] = (string) (reader["ゴール"]);
                             if (startLane == 0)
                                 startLane = Convert.ToInt32(reader["水路"]);
                             scounter++;
@@ -751,7 +774,8 @@ namespace GoDoCreater
                          第１泳者=@firstOne , 第２泳者 = @secondOne ,
                          第３泳者=@thirdOne , 第４泳者 = @lastOne ,
                          第一泳者新記録判定クラス=@firstOneClassNo ,
-                         第一泳者標準記録判定クラス=@firstOneCertNo
+                         第一泳者標準記録判定クラス=@firstOneCertNo ,
+                         ゴール=@goal 
                       where 大会番号=@eventNo and 競技番号=@uid and 組=@tokumi and 水路=@laneNo";
 
                     using (SqlCommand myCommand = new(myQuery, myCon))
@@ -771,6 +795,7 @@ namespace GoDoCreater
                         myCommand.Parameters.AddWithValue("@uid", uid);
                         myCommand.Parameters.AddWithValue("@tokumi", toKumi);
                         myCommand.Parameters.AddWithValue("@laneNo", lane);
+                        myCommand.Parameters.AddWithValue("@goal", goal[scounter]);
                         scounter++;
                         myCommand.ExecuteNonQuery();
                     }
@@ -794,6 +819,8 @@ namespace GoDoCreater
             int[] firstOneClassNo = new int[10];
             int[] firstOneCertNo = new int[10];
             int[] laneNo = new int[10];
+            string[] goal = new string[10];
+            Array.Fill(goal, string.Empty);
             int scounter = 0;
             int startLane=0;
             int maxScounter = 0;
@@ -824,6 +851,7 @@ namespace GoDoCreater
                             firstOneClassNo[scounter] = Convert.ToInt32(reader["第一泳者新記録判定クラス"]);
                             firstOneCertNo[scounter] = Convert.ToInt32(reader["第一泳者標準記録判定クラス"]);
                             laneNo[scounter] = Convert.ToInt32(reader["水路"]);
+                            goal[scounter] = (string) (reader["ゴール"]);
                             scounter++;
                         }
                         maxScounter = scounter;
@@ -842,7 +870,8 @@ namespace GoDoCreater
                          第１泳者=@firstOne , 第２泳者 = @secondOne ,
                          第３泳者=@thirdOne , 第４泳者 = @lastOne ,
                          第一泳者新記録判定クラス=@firstOneClassNo ,
-                         第一泳者標準記録判定クラス=@firstOneCertNo
+                         第一泳者標準記録判定クラス=@firstOneCertNo ,
+                         ゴール=@goal
                       where 大会番号=@eventNo and 競技番号=@uid and 組=@tokumi and 水路=@laneNo";
 
                     using (SqlCommand myCommand = new(myQuery, myCon))
@@ -862,6 +891,7 @@ namespace GoDoCreater
                         myCommand.Parameters.AddWithValue("@uid", uid);
                         myCommand.Parameters.AddWithValue("@tokumi", toKumi);
                         myCommand.Parameters.AddWithValue("@laneNo", laneNo[scounter]);
+                        myCommand.Parameters.AddWithValue("@goal", goal[scounter]);
                         myCommand.ExecuteNonQuery();
                     }
                 }   
