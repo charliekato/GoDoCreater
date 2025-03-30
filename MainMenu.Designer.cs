@@ -37,12 +37,14 @@
             buttonQuit = new Button();
             labelScenario3 = new Label();
             label1 = new Label();
+            checkBoxScenario4 = new CheckBox();
+            labelTitle = new Label();
             SuspendLayout();
             // 
             // checkBoxScenario1
             // 
             checkBoxScenario1.AutoSize = true;
-            checkBoxScenario1.Location = new Point(178, 65);
+            checkBoxScenario1.Location = new Point(178, 102);
             checkBoxScenario1.Name = "checkBoxScenario1";
             checkBoxScenario1.Size = new Size(223, 24);
             checkBoxScenario1.TabIndex = 0;
@@ -52,7 +54,7 @@
             // checkBoxScenario3
             // 
             checkBoxScenario3.AutoSize = true;
-            checkBoxScenario3.Location = new Point(178, 262);
+            checkBoxScenario3.Location = new Point(178, 287);
             checkBoxScenario3.Name = "checkBoxScenario3";
             checkBoxScenario3.Size = new Size(391, 24);
             checkBoxScenario3.TabIndex = 1;
@@ -63,7 +65,7 @@
             // checkBoxStrategy1
             // 
             checkBoxStrategy1.AutoSize = true;
-            checkBoxStrategy1.Location = new Point(214, 99);
+            checkBoxStrategy1.Location = new Point(214, 136);
             checkBoxStrategy1.Name = "checkBoxStrategy1";
             checkBoxStrategy1.Size = new Size(137, 24);
             checkBoxStrategy1.TabIndex = 2;
@@ -73,7 +75,7 @@
             // checkBoxStrategy2
             // 
             checkBoxStrategy2.AutoSize = true;
-            checkBoxStrategy2.Location = new Point(214, 136);
+            checkBoxStrategy2.Location = new Point(214, 173);
             checkBoxStrategy2.Name = "checkBoxStrategy2";
             checkBoxStrategy2.Size = new Size(293, 24);
             checkBoxStrategy2.TabIndex = 3;
@@ -83,7 +85,7 @@
             // checkBoxScenario2
             // 
             checkBoxScenario2.AutoSize = true;
-            checkBoxScenario2.Location = new Point(178, 195);
+            checkBoxScenario2.Location = new Point(178, 229);
             checkBoxScenario2.Name = "checkBoxScenario2";
             checkBoxScenario2.Size = new Size(251, 24);
             checkBoxScenario2.TabIndex = 4;
@@ -92,7 +94,7 @@
             // 
             // buttonExe
             // 
-            buttonExe.Location = new Point(229, 376);
+            buttonExe.Location = new Point(229, 457);
             buttonExe.Name = "buttonExe";
             buttonExe.Size = new Size(71, 41);
             buttonExe.TabIndex = 6;
@@ -102,7 +104,7 @@
             // 
             // buttonQuit
             // 
-            buttonQuit.Location = new Point(542, 376);
+            buttonQuit.Location = new Point(542, 457);
             buttonQuit.Name = "buttonQuit";
             buttonQuit.Size = new Size(71, 41);
             buttonQuit.TabIndex = 7;
@@ -113,7 +115,7 @@
             // labelScenario3
             // 
             labelScenario3.AutoSize = true;
-            labelScenario3.Location = new Point(232, 289);
+            labelScenario3.Location = new Point(232, 314);
             labelScenario3.Name = "labelScenario3";
             labelScenario3.Size = new Size(334, 20);
             labelScenario3.TabIndex = 8;
@@ -122,17 +124,40 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(232, 321);
+            label1.Location = new Point(232, 346);
             label1.Name = "label1";
-            label1.Size = new Size(536, 20);
+            label1.Size = new Size(548, 20);
             label1.TabIndex = 9;
-            label1.Text = "現在は男女合同と、組単位の合同には対応してません。(競技結果の印刷が未対応なた)";
+            label1.Text = "現在は男女合同と、組単位の合同には対応してません。(競技結果の印刷が未対応なため)";
+            // 
+            // checkBoxScenario4
+            // 
+            checkBoxScenario4.AutoSize = true;
+            checkBoxScenario4.Location = new Point(178, 391);
+            checkBoxScenario4.Name = "checkBoxScenario4";
+            checkBoxScenario4.Size = new Size(370, 24);
+            checkBoxScenario4.TabIndex = 10;
+            checkBoxScenario4.Text = "プログラム作成用に合同にする(実際のレースには使わない)";
+            checkBoxScenario4.UseVisualStyleBackColor = true;
+            checkBoxScenario4.CheckedChanged += checkBox4Pro_CheckedChanged;
+            // 
+            // labelTitle
+            // 
+            labelTitle.AutoSize = true;
+            labelTitle.Font = new Font("Yu Gothic UI", 30F);
+            labelTitle.Location = new Point(232, 9);
+            labelTitle.Name = "labelTitle";
+            labelTitle.Size = new Size(448, 67);
+            labelTitle.TabIndex = 11;
+            labelTitle.Text = "合同レースクリエーター";
             // 
             // MainMenu
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(931, 563);
+            Controls.Add(labelTitle);
+            Controls.Add(checkBoxScenario4);
             Controls.Add(label1);
             Controls.Add(labelScenario3);
             Controls.Add(buttonQuit);
@@ -161,5 +186,6 @@
         private Button buttonQuit;
         private Label labelScenario3;
         private Label label1;
+        private Label labelTitle;
     }
 }

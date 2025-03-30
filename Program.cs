@@ -97,13 +97,15 @@ namespace GoDoCreater
         {
             DeleteGoDoTable();
             CreateGoDoTable();
-            MessageBox.Show("シナリオ2(レーン寄せ)終了");
         }
-        public static void Scenario3()
+        public static void Scenario3(bool scenario4Flag)
         {
-            //GlobalV.GoDoClass=GetOrCreateGodoClass();
-            MoveSwimmerAll();
-            MessageBox.Show("合同レースの作成終了");
+            if (scenario4Flag)
+            {
+                GlobalV.GoDoClass = GetOrCreateGodoClass();
+            }
+
+            MoveSwimmerAll(scenario4Flag);
         }
         public static int GetRaceNo(int prgNo, int kumi) {
             return (prgNo - 1) * GlobalV.MaxKumi + kumi - 1;
@@ -647,51 +649,52 @@ namespace GoDoCreater
             }
         }
 
-        static void MoveSwimmerAll()
+        static void MoveSwimmerAll(bool scenario4Flag)
         {
-            int prgNo = 1, kumi = 1;
-            do
+            int prgNo = 1, kumi = 0; bool first = true;
+            int nextPrgNo, nextKumi;
+            while ( GetNextRace(ref prgNo,ref kumi))
             {
-                int nextPrgNo, nextKumi;
                 nextPrgNo = prgNo;
                 nextKumi = kumi;
                 if (!GetNextRace(ref nextPrgNo, ref nextKumi)) return;
-                if (!CanGoTogether(prgNo, kumi, nextPrgNo, nextKumi)) continue;
-                if (kumi==1)
+                while(CanGoTogether(prgNo,kumi,nextPrgNo,nextKumi))
                 {
-#if TRADITIONAL
-                    if (nextKumi==1) {
-                        if (GlobalV.GenderbyPrgNo[prgNo - 1] == GlobalV.GenderbyPrgNo[nextPrgNo - 1]) {
-#endif
+                    if (kumi==1)
+                    {
+                        if ( scenario4Flag ||( (nextKumi==1) &&  (GlobalV.GenderbyPrgNo[prgNo - 1] == GlobalV.GenderbyPrgNo[nextPrgNo - 1]) )) {
                             MoveSwimmer(nextPrgNo, nextKumi, prgNo, kumi);
+                            if (first)
+                            {
+                                first = false;
+                                if (!scenario4Flag)
+                                    ChangeClass(prgNo,0);
+                                else
+                                    ChangeClass(prgNo,GlobalV.GoDoClass   );
+                                if (GlobalV.GenderbyPrgNo[prgNo - 1] != GlobalV.GenderbyPrgNo[nextPrgNo - 1])
+                                    ChangeGender(prgNo);
+                            }
                             if (GlobalV.NumSwimmers[GetRaceNo(nextPrgNo,2)]==0)
                                 DeleteProgram(nextPrgNo);
-                            ChangeClass(prgNo,0);
+                        }
+                    } else
+                    {
+                        if ( scenario4Flag && (GlobalV.NumSwimmers[GetRaceNo(nextPrgNo,2)]==0))
+                        {
+                            MoveSwimmerReverse(prgNo, kumi, nextPrgNo, nextKumi);
+                            ChangeClass(nextPrgNo,GlobalV.GoDoClass);
+                            DeleteProgram(prgNo);
                             if (GlobalV.GenderbyPrgNo[prgNo - 1] != GlobalV.GenderbyPrgNo[nextPrgNo - 1])
                             {
-                                ChangeGender(prgNo);
+                                ChangeGender(nextPrgNo);
                             }
-#if TRADITIONAL
                         }
                     }
-#endif
-                } else
-                {
-#if !TRADITIONAL
-                    if (GlobalV.NumSwimmers[GetRaceNo(nextPrgNo,2)]==0)
-                    {
-                        MoveSwimmerReverse(prgNo, kumi, nextPrgNo, nextKumi);
-                        ChangeClass(nextPrgNo,0);
-                        DeleteProgram(prgNo);
-                        if (GlobalV.GenderbyPrgNo[prgNo - 1] != GlobalV.GenderbyPrgNo[nextPrgNo - 1])
-                        {
-                            ChangeGender(nextPrgNo);
-                        }
-                    }
-#endif
+                    if (!GetNextRace(ref nextPrgNo, ref nextKumi)) return;
                 }
-            } while (GetNextRace(ref prgNo, ref kumi));
+                first = true;
 
+            }
         }
 
          static bool CanGoTogether(int prgNo1, int kumi1, int prgNo2, int kumi2)

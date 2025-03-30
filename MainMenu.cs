@@ -20,26 +20,41 @@ namespace GoDoCreater
 
         private void checkBoxScenario3_CheckedChanged(object sender, EventArgs e)
         {
+            if (checkBoxScenario3.Checked == true)
+            {
+                checkBoxScenario4.Checked = false;
+            }
 
         }
 
         private void buttonExe_Click(object sender, EventArgs e)
         {
+            string myMessage = "";
             GlobalV.Strategy1 = checkBoxStrategy1.Checked;
             GlobalV.Strategy2 = checkBoxStrategy2.Checked;
             GoDogen.PrepareGO();
             if (checkBoxScenario1.Checked)
+            {
                 GoDogen.Scenario1();
+                myMessage = "下準備のレーン寄せ\n";
+            }
 
-            if (!checkBoxScenario2.Checked)
-                MessageBox.Show("シナリオ1(レーン寄せ)終了");
-            else
+            if (checkBoxScenario2.Checked)
+            {
                 GoDogen.Scenario2();
+                myMessage += "合同レーステーブル作成\n";
+            }
 
-            if (!checkBoxScenario3.Checked)
-                MessageBox.Show("シナリオ2");
-            else
-                GoDogen.Scenario3();
+            if (checkBoxScenario3.Checked) {
+                GoDogen.Scenario3(false);
+                myMessage += "合同競技作成\n";
+            }
+            if (checkBoxScenario4.Checked)
+            {
+                GoDogen.Scenario3(true);
+                myMessage += "プログラム用の合同競技作成\n";
+            }
+            MessageBox.Show(myMessage + "終了");
         }
 
         private void buttonQuit_Click(object sender, EventArgs e)
@@ -50,6 +65,12 @@ namespace GoDoCreater
         private void MainMenu_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void checkBox4Pro_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxScenario4.Checked==true)
+            checkBoxScenario3.Checked = false;
         }
     }
 }
