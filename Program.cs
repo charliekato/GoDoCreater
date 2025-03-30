@@ -465,7 +465,7 @@ namespace GoDoCreater
         }
 /// <summary>
 /// GetFirstLane
-///     get the first lane no which is occupied by a swimmer.
+///     get the first lane on which is occupied by a swimmer.
 /// </summary>
 /// <param name="prgNo"></param>
 /// <param name="kumi"></param>
@@ -476,14 +476,15 @@ namespace GoDoCreater
             using (SqlConnection myCon = new(connectionString))
             {
                 myCon.Open();
-                int uid = GlobalV.UIDFromPrgNo[prgNo-1];
-                string myQuery = @"
-                      select MIN(水路) as FirstLane  from 記録 where 競技番号=@uid and 大会番号=@eventNo
-                          and 選手番号>0";
+                string myQuery = @"select min(水路) as firstLane  from 記録
+                 where 競技番号=( select 競技番号 from プログラム where 表示用競技番号=@prgNo 
+                   and 大会番号=@eventNo ) and 組=@kumi and 大会番号=@eventNo
+                   and 選手番号>0";
                 using (SqlCommand myCommand = new(myQuery, myCon))
                 {
                     myCommand.Parameters.AddWithValue("@eventNo", GlobalV.EventNo);
-                    myCommand.Parameters.AddWithValue("@uid", uid);
+                    myCommand.Parameters.AddWithValue("@prgNo", prgNo);
+                    myCommand.Parameters.AddWithValue("@kumi", kumi);
                     using (SqlDataReader reader = myCommand.ExecuteReader())
                     {
                         if (reader.Read())
@@ -509,14 +510,15 @@ namespace GoDoCreater
             using (SqlConnection myCon = new(connectionString))
             {
                 myCon.Open();
-                int uid = GlobalV.UIDFromPrgNo[prgNo-1];
-                string myQuery = @"
-                      select MAX(水路) as LastLane  from 記録 where 競技番号=@uid and 大会番号=@eventNo
-                          and 選手番号>0";
+                string myQuery = @" select MAX(水路) as LastLane  from 記録
+                 where 競技番号=( select 競技番号 from プログラム where 表示用競技番号=@prgNo 
+                  and 大会番号=@eventNo ) and 大会番号=@eventNo
+                  and 選手番号>0 and 組=@kumi";
                 using (SqlCommand myCommand = new(myQuery, myCon))
                 {
                     myCommand.Parameters.AddWithValue("@eventNo", GlobalV.EventNo);
-                    myCommand.Parameters.AddWithValue("@uid", uid);
+                    myCommand.Parameters.AddWithValue("@prgNo", prgNo);
+                    myCommand.Parameters.AddWithValue("@kumi", kumi);
                     using (SqlDataReader reader = myCommand.ExecuteReader())
                     {
                         if (reader.Read())
